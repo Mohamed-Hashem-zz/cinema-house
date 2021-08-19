@@ -6,4 +6,4 @@
   is a movies website and I used an api to get data and Node js as a backend to Login and Register
 
 # Technologies Used : 
-   React Js / Hooks / TMDB Api / Class Component
+   React Js / Hooks / TMDB Api / Class Component / Bootstrap
