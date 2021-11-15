@@ -1,8 +1,6 @@
-import React, { Component } from 'react';
-import Navbar from './../../Components/Navbar/Navbar';
+import React, { Component } from "react";
 
 export default class NotFound extends Component {
-
     mystyle = {
         position: "relative",
         left: "50%",
@@ -12,13 +10,20 @@ export default class NotFound extends Component {
     render() {
         return (
             <>
-                <Navbar />
-                <section className="d-flex justify-content-center align-items-center " style={{ minHeight: "71.5vh" }}>
+                <section
+                    className="d-flex justify-content-center align-items-center "
+                    style={{ minHeight: "71.5vh" }}
+                >
                     <div>
-                        <h1 style={this.mystyle} className="font-weight-bolder fa-4x text-secondary">Page Not Found</h1>
+                        <h1
+                            style={this.mystyle}
+                            className="font-weight-bolder fa-4x text-secondary"
+                        >
+                            Page Not Found
+                        </h1>
                     </div>
                 </section>
             </>
-        )
+        );
     }
 }

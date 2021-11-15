@@ -1,38 +1,35 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App.jsx';
-import { BrowserRouter } from 'react-router-dom'
-import Favicon from 'react-favicon';
+//** import Bootstrap **//
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.min.js";
+import "jquery/dist/jquery.min.js";
+import "popper.js/dist/umd/popper.min.js";
+import React from "react";
+import ReactDOM from "react-dom";
 
-import img from "./images/movie.svg"
+//** import Redux Provider **//
+import { Provider } from "react-redux";
+import { BrowserRouter } from "react-router-dom";
 
+//** import App **//
+import App from "./App.js";
+
+//** import Scss Style and Css Styles **//
+import "./index.scss";
+import "./Scss/Fontfamily.css";
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
-import 'react-alice-carousel/lib/alice-carousel.css';
+import "react-toastify/dist/ReactToastify.min.css";
 
-/// import bootstrap
-import "bootstrap/dist/css/bootstrap.min.css"
-import "jquery/dist/jquery.min.js"
-import "popper.js/dist/umd/popper.min.js"
-import "bootstrap/dist/js/bootstrap.min.js"
-
-//import Fontawesome
-import "@fortawesome/fontawesome-free/css/all.min.css"
-
-import './index.css';
+//** import Redux Store **//
+import { store } from "./Redux/Store/Store.jsx";
 
 ReactDOM.render(
-  <React.StrictMode>
+	<React.StrictMode>
+		<BrowserRouter basename="/#">
+			<Provider store={store}>
+				<App />
+			</Provider>
+		</BrowserRouter>
+	</React.StrictMode>,
 
-    <BrowserRouter basename="#">
-
-      <Favicon url={img} />
-
-      <App />
-
-    </BrowserRouter>
-
-  </React.StrictMode>,
-
-  document.getElementById('root')
+	document.getElementById("root")
 );
-

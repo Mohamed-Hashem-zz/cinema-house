@@ -1,76 +1,82 @@
-import React, { useEffect, useState } from 'react';
-import AliceCarousel from 'react-alice-carousel';
-import axios from 'axios';
-import Loader from 'react-loader-spinner';
+import React, { useEffect, useState } from "react";
+import AliceCarousel from "react-alice-carousel";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPosters } from "./../../Redux/Actions/Actions";
 
 const handleDragStart = (e) => e.preventDefault();
 
 const MovieShow = ({ poster }) => {
+	const dispatch = useDispatch();
 
-    const [credits, setCredits] = useState([]);
+	const allPosters = useSelector((state) => state.posters);
 
-    const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(false);
 
-    const items = React.Children.toArray(
+	const items = React.Children.toArray(
+		allPosters?.map((img) => {
+			return (
+				<div className="itemHover card card-body">
+					<div className="captionLayer overflow-hidden carouselItem">
+						<img
+							src={`https://image.tmdb.org/t/p/original${img.file_path}`}
+							width="100%"
+							height="300"
+							className="carouselItem__img"
+							alt={poster.name ? poster.name : poster.title}
+							onDragStart={handleDragStart}
+						/>
+					</div>
+				</div>
+			);
+		})
+	);
 
-        credits?.map((img) => {
-            return (
-                <div className="itemHover card card-body">
-                    <div className="captionLayer overflow-hidden carouselItem">
-                        <img src={`https://image.tmdb.org/t/p/original${img.file_path}`} width="100%" height="300" className="carouselItem__img" alt="..." onDragStart={handleDragStart} />
-                    </div>
-                </div>
-            )
-        })
-    )
+	const responsive = {
+		0: {
+			items: 1,
+		},
+		512: {
+			items: 3,
+		},
+		1024: {
+			items: 5,
+		},
+	};
 
-    const responsive = {
-        0: {
-            items: 1
-        },
-        512: {
-            items: 3
-        },
-        1024: {
-            items: 5
-        }
-    };
+	useEffect(() => {
+		dispatch(fetchPosters("movie", poster.id, "images"));
+		setLoading(true);
 
-    const fetchImages = async () => {
-        await axios.get(`https://api.themoviedb.org/3/movie/${poster.id}/images?api_key=0c46ad1eb5954840ed97f5e537764be8`).then((res) => {
+		return () => {
+			setLoading(false);
+		}; // eslint-disable-next-line
+	}, []);
 
-            if (res.data.backdrops.length > 0) {
-                setLoading(true);
-                setCredits(res.data.backdrops)
-            }
-        }).catch((err) => {
-            console.log(err);
-            setCredits([])
-        })
-    }
+	return loading && allPosters.length > 0 ? (
+		<>
+			<div className="w-100 line my-5"></div>
 
-    useEffect(() => {
-        fetchImages();
+			<div className="item text-center my-3">
+				<h3>
+					Posters For{" "}
+					<b className="text-info">
+						{poster.name ? poster.name : poster.title}{" "}
+					</b>
+				</h3>
+			</div>
 
-        return (() => {
-            setLoading(false);
-            setCredits([]);
-        })              // eslint-disable-next-line
-    }, [poster]);
-
-    return loading ? (
-        <>
-            <div className="w-100 line my-5"></div>
-
-            <div className="item text-center my-3">
-                <h3>Posters For <b className="text-info">{poster.name ? poster.name : poster.title}</b> </h3>
-            </div>
-
-            <AliceCarousel autoPlay responsive={responsive} infinite autoPlayInterval={2000} disableDotsControls disableButtonsControls mouseTracking items={items} />
-        </>
-    ) : (<div className="Loader" >
-        <Loader type="Bars" color="#00BFFF" height={100} width={100} timeout={3000} />
-    </div>);
-}
+			<AliceCarousel
+				autoPlay
+				responsive={responsive}
+				infinite
+				autoPlayInterval={2000}
+				disableDotsControls
+				disableButtonsControls
+				mouseTracking
+				items={items}
+			/>
+		</>
+	) : null;
+};
 
 export default MovieShow;

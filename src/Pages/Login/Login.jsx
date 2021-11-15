@@ -1,104 +1,151 @@
-import React, { Component } from 'react';
-import axios from 'axios';
-import SolidNavbar from './../../Components/Solid Navbar/SolidNavbar';
+import React, { Component } from "react";
+import SolidNavbar from "./../../Components/Solid Navbar/SolidNavbar";
+import * as Joi from "joi-browser";
+import { toast } from "react-toastify";
+import { formData } from "../../Redux/Actions/Actions";
+import { connect } from "react-redux";
 
-export default class Login extends Component {
+class Login extends Component {
+	constructor(props) {
+		super(props);
 
-    controller = new AbortController();
+		this.state = {
+			errorMessage: "",
+			status: "",
+			waiting: false,
+			errors: {},
+		};
 
-    constructor() {
-        super();
+		this.User = {
+			email: "",
+			password: "",
+		};
 
-        this.state = { errorMessage: "", status: "", waiting: false };
+		this.Schema = {
+			// Joi Validation
+			email: Joi.string().email().required(),
+			password: Joi.string().min(6).required(),
+		};
+	}
 
-        this.User = {
-            email: "",
-            password: ""
-        }
-    }
+	handleChange = (e) => {
+		this.User[e.target.name] = e.target.value;
+		this.setState({ errors: {}, status: "d-none" });
+	};
 
-    getFormData = (e) => {
-        this.User[e.target.name] = e.target.value;
-    }
-    validateUserData = () => {
-        if (this.User.email === "") {
+	Validation = () => {
+		// Clone
+		const errors = {};
+		// Edit
+		const { error } = Joi.validate(this.User, this.Schema);
 
-            this.setState({
-                errorMessage: "Please Enter Valid Email",
-                status: "alert alert-danger text-center font-weight-bolder"
-            })
+		if (error === null) {
+			this.setState({ errors: {} });
+			return null;
+		} else {
+			for (const err of error.details) errors[err.path] = err.message;
 
-            return false;
-        }
-        else if (this.User.password === "") {
+			// Set State
+			this.setState({ errors });
+		}
+	};
 
-            this.setState({
-                errorMessage: "Please Enter Valid Password",
-                status: "alert alert-danger text-center font-weight-bolder"
-            })
+	sendData = async (e) => {
+		e.preventDefault();
 
-            return false;
-        } else
-            return true;
-    }
-    sendData = async (e) => {
+		this.setState({ waiting: true });
 
-        e.preventDefault();
+		const errors = await this.Validation();
 
-        this.setState({ waiting: true })
+		if (errors) return errors;
+		else if (errors === null) {
+			await this.props.formData(this.User, "signin");
 
-        const isValid = this.validateUserData();
+			if (this.props.LoginData.message === "success") {
+				toast.success("Created Successfully");
 
-        if (isValid) {
+				localStorage.setItem("token", this.props.LoginData.token);
+				this.props.history.replace("/home"); // to change the direction to home and back to empty Page
+			} else if (this.props.LoginData === "Network Error") {
+				toast.error("Network Error");
 
-            await axios.post("https://route-egypt-api.herokuapp.com/signin", this.User, { signal: this.controller.signal }).then((res) => {
+				this.setState({
+					errorMessage: this.props.LoginData,
+					status: "alert alert-danger text-center font-weight-bolder",
+				});
+			} else {
+				toast.error(this.props.LoginData.message);
+				this.setState({
+					errorMessage: this.props.LoginData.message,
+					status: "alert alert-danger text-center font-weight-bolder",
+				});
+			}
+		}
+		this.setState({ waiting: false });
+	};
 
-                const { data } = res;
+	componentWillUnmount() {
+		this.setState({ waiting: false });
+	}
 
-                if (data.message === "success") {
+	render() {
+		return (
+			<>
+				<SolidNavbar />
 
-                    localStorage.setItem("token", data.token);
-                    this.props.history.replace('/home'); // to change the direction to home and back to empty Page
-                }
-                else {
-                    this.setState({
-                        errorMessage: data.message,
-                        status: "alert alert-danger text-center font-weight-bolder"
-                    })
-                }
+				<section
+					className="d-flex align-items-center justify-content-center"
+					style={{ minHeight: "73vh", top: "80px" }}
+				>
+					<div className="container text-center" style={{ width: "35%" }}>
+						<form onSubmit={this.sendData}>
+							<input
+								onChange={this.handleChange}
+								type="email"
+								name="email"
+								className="form-control my-3"
+								placeholder="Email"
+								autoFocus
+								autoComplete="email"
+							/>
+							{this.state.errors.email && (
+								<div className="alert alert-danger">
+									{this.state.errors.email}
+								</div>
+							)}
 
-            }).catch((err) => this.setState({ errorMessage: err.message, status: "alert alert-danger text-center font-weight-bolder" }))
-        }
+							<input
+								onChange={this.handleChange}
+								type="password"
+								name="password"
+								className="form-control my-3"
+								placeholder="Password"
+								autoComplete="current-password"
+							/>
 
-        this.setState({ waiting: false })
+							{this.state.errors.password && (
+								<div className="alert alert-danger">
+									{this.state.errors.password}
+								</div>
+							)}
 
-    }
+							<div className={this.state.status}>{this.state.errorMessage}</div>
 
-    componentWillUnmount() {
-        this.setState({ waiting: false })
-        this.controller.abort();
-    }
-
-    render() {
-        return (
-            <>
-                <SolidNavbar />
-
-                <section className='d-flex align-items-center justify-content-center' style={{ minHeight: "73vh", top: "80px" }}>
-                    <div className="container text-center" style={{ width: "35%" }}>
-
-                        <form onSubmit={this.sendData} >
-
-                            <input onChange={this.getFormData} type="email" name="email" className="form-control my-3" placeholder="Email" autoFocus autoComplete="email" />
-                            <input onChange={this.getFormData} type="password" name="password" className="form-control my-3" placeholder="Password" autoComplete="current-password" />
-
-                            <div className={this.state.status}>{this.state.errorMessage}</div>
-
-                            <button className="btn btn-info w-50 my-3">{this.state.waiting ? "Waiting ... " : "Login"}</button>
-                        </form>
-                    </div>
-                </section>
-            </>
-        )
-    }
+							<button className="btn btn-info w-50 my-3">
+								{this.state.waiting ? "Waiting ... " : "Login"}
+							</button>
+						</form>
+					</div>
+				</section>
+			</>
+		);
+	}
 }
+
+const mapStateToProps = (state) => {
+	return {
+		LoginData: state.LoginData,
+	};
+};
+
+export default connect(mapStateToProps, { formData })(Login);
